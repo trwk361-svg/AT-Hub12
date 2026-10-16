@@ -1,19 +1,403 @@
--- Asta Back Premium v18 - Hold Script
-local Library = {}
+-- =========================================================
+-- ASTA BACK PREMIUM | Time Bomb (fmt Edition - Ultimate Masterpiece)
+-- Developer: fmt (@F_1o41)
+-- =========================================================
 
-local holdEnabled = false
-local holdTime = 2
-
-print("Asta Back Loaded Successfully!")
-
-local function startHold()
-    task.spawn(function()
-        while holdEnabled do
-            task.wait(holdTime)
-            print("Holding...")
-        end
+pcall(function()
+    local mt = getrawmetatable(game)
+    setreadonly(mt, false)
+    local oldNamecall = mt.__namecall
+    mt.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        if method == "Kick" or method == "Ban" then return nil end
+        return oldNamecall(self, ...)
     end)
+end)
+
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local SoundService = game:GetService("SoundService")
+
+pcall(function()
+    if CoreGui:FindFirstChild("AT_HubSystem") then CoreGui.AT_HubSystem:Destroy() end
+    if LocalPlayer.PlayerGui:FindFirstChild("AT_HubSystem") then LocalPlayer.PlayerGui.AT_HubSystem:Destroy() end
+end)
+
+local ScreenGui = Instance.new("ScreenGui", CoreGui)
+ScreenGui.Name = "AT_HubSystem"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+pcall(function() if gethui then ScreenGui.Parent = gethui() end end)
+
+-- تشغيل الأغنية الحماسية
+local IntroMusic = nil
+pcall(function()
+    IntroMusic = Instance.new("Sound", SoundService)
+    IntroMusic.SoundId = "rbxassetid://1843436418"
+    IntroMusic.Volume = 0.8
+    IntroMusic.Looped = true
+    IntroMusic:Play()
+end)
+
+---------------------------------------------------------
+-- 1. مقدمة لقطات الأنمي والحماس (مع زر التخطي في الزاوية)
+---------------------------------------------------------
+local IntroGui = Instance.new("Frame", ScreenGui)
+IntroGui.Size = UDim2.new(1, 0, 1, 0)
+IntroGui.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+IntroGui.ZIndex = 100
+
+local AnimeBg = Instance.new("ImageLabel", IntroGui)
+AnimeBg.Size = UDim2.new(1, 0, 1, 0)
+AnimeBg.BackgroundTransparency = 1
+AnimeBg.Image = "rbxassetid://13888302061"
+AnimeBg.ScaleType = Enum.ScaleType.Crop
+AnimeBg.ImageTransparency = 0.15
+AnimeBg.ZIndex = 101
+
+local IntroTitle = Instance.new("TextLabel", IntroGui)
+IntroTitle.Size = UDim2.new(1, 0, 0, 80)
+IntroTitle.Position = UDim2.new(0, 0, 0.35, 0)
+IntroTitle.BackgroundTransparency = 1
+IntroTitle.Text = "⚡ ASTA BACK PREMIUM ⚡\nجاري تجهيز السكربت..."
+IntroTitle.TextColor3 = Color3.fromRGB(255, 200, 50)
+IntroTitle.TextSize = 22
+IntroTitle.Font = Enum.Font.GothamBold
+IntroTitle.ZIndex = 102
+
+local SkipIntroBtn = Instance.new("TextButton", IntroGui)
+SkipIntroBtn.Size = UDim2.new(0, 110, 0, 40)
+SkipIntroBtn.Position = UDim2.new(1, -130, 1, -70)
+SkipIntroBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+SkipIntroBtn.Text = "تخطي | Skip ⏩"
+SkipIntroBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SkipIntroBtn.TextSize = 13
+SkipIntroBtn.Font = Enum.Font.GothamBold
+SkipIntroBtn.ZIndex = 103
+Instance.new("UICorner", SkipIntroBtn).CornerRadius = UDim.new(0, 20)
+Instance.new("UIStroke", SkipIntroBtn).Color = Color3.fromRGB(255, 170, 0)
+
+---------------------------------------------------------
+-- 2. نافذة المفتاح (مخفي وصعب بدون أي تلميح)
+---------------------------------------------------------
+local KeyFrame = Instance.new("Frame", ScreenGui)
+KeyFrame.Size = UDim2.new(0, 320, 0, 190)
+KeyFrame.Position = UDim2.new(0.5, -160, 0.5, -95)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+KeyFrame.Visible = false
+KeyFrame.Active = true
+KeyFrame.Draggable = true
+KeyFrame.ZIndex = 80
+Instance.new("UICorner", KeyFrame).CornerRadius = UDim.new(0, 14)
+Instance.new("UIStroke", KeyFrame).Color = Color3.fromRGB(255, 170, 0)
+
+local KeyBg = Instance.new("ImageLabel", KeyFrame)
+KeyBg.Size = UDim2.new(1, 0, 1, 0)
+KeyBg.BackgroundTransparency = 1
+KeyBg.Image = "rbxassetid://13888302061"
+KeyBg.ScaleType = Enum.ScaleType.Crop
+KeyBg.ImageTransparency = 0.3
+KeyBg.ZIndex = 81
+Instance.new("UICorner", KeyBg).CornerRadius = UDim.new(0, 14)
+
+local KeyTitle = Instance.new("TextLabel", KeyFrame)
+KeyTitle.Size = UDim2.new(1, 0, 0, 50)
+KeyTitle.Position = UDim2.new(0, 0, 0.1, 0)
+KeyTitle.BackgroundTransparency = 1
+KeyTitle.Text = "🔑 أدخل مفتاح التشغيل\n(المفتاح سري وصعب)"
+KeyTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyTitle.TextSize = 14
+KeyTitle.Font = Enum.Font.GothamBold
+KeyTitle.ZIndex = 82
+
+local KeyInput = Instance.new("TextBox", KeyFrame)
+KeyInput.Size = UDim2.new(0, 260, 0, 42)
+KeyInput.Position = UDim2.new(0.5, -130, 0, 80)
+KeyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+KeyInput.PlaceholderText = "اكتب المفتاح هنا..."
+KeyInput.Text = ""
+KeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyInput.TextSize = 13
+KeyInput.Font = Enum.Font.GothamMedium
+KeyInput.ZIndex = 82
+Instance.new("UICorner", KeyInput).CornerRadius = UDim.new(0, 8)
+Instance.new("UIStroke", KeyInput).Color = Color3.fromRGB(255, 170, 0)
+
+local VerifyBtn = Instance.new("TextButton", KeyFrame)
+VerifyBtn.Size = UDim2.new(0, 260, 0, 38)
+VerifyBtn.Position = UDim2.new(0.5, -130, 0, 135)
+VerifyBtn.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+VerifyBtn.Text = "تحقق ودخول"
+VerifyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+VerifyBtn.TextSize = 13
+VerifyBtn.Font = Enum.Font.GothamBold
+VerifyBtn.ZIndex = 82
+Instance.new("UICorner", VerifyBtn).CornerRadius = UDim.new(0, 8)
+
+---------------------------------------------------------
+-- 3. الواجهة الرئيسية (ASTA BACK PREMIUM - v18)
+---------------------------------------------------------
+local MainHub = Instance.new("Frame", ScreenGui)
+MainHub.Size = UDim2.new(0, 220, 0, 185)
+MainHub.Position = UDim2.new(0.1, 0, 0.35, 0)
+MainHub.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+MainHub.BackgroundTransparency = 0.05
+MainHub.Visible = false
+MainHub.Active = true
+MainHub.Draggable = true
+MainHub.ZIndex = 50
+Instance.new("UICorner", MainHub).CornerRadius = UDim.new(0, 12)
+Instance.new("UIStroke", MainHub).Color = Color3.fromRGB(255, 170, 0)
+
+local MainBg = Instance.new("ImageLabel", MainHub)
+MainBg.Size = UDim2.new(1, 0, 1, 0)
+MainBg.BackgroundTransparency = 1
+MainBg.Image = "rbxassetid://13888302061"
+MainBg.ScaleType = Enum.ScaleType.Crop
+MainBg.ImageTransparency = 0.25
+MainBg.ZIndex = 51
+Instance.new("UICorner", MainBg).CornerRadius = UDim.new(0, 12)
+
+local TopHeader = Instance.new("TextLabel", MainHub)
+TopHeader.Size = UDim2.new(1, 0, 0, 35)
+TopHeader.Position = UDim2.new(0, 0, 0, 5)
+TopHeader.BackgroundTransparency = 1
+TopHeader.Text = "⚡ ASTA BACK ⚡\nPREMIUM • v18"
+TopHeader.TextColor3 = Color3.fromRGB(255, 200, 50)
+TopHeader.TextSize = 12
+TopHeader.Font = Enum.Font.GothamBold
+TopHeader.ZIndex = 52
+
+-- زر هولد (تشغيل/إيقاف)
+local HoldToggleBtn = Instance.new("TextButton", MainHub)
+HoldToggleBtn.Size = UDim2.new(0, 190, 0, 36)
+HoldToggleBtn.Position = UDim2.new(0.5, -95, 0, 45)
+HoldToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 45)
+HoldToggleBtn.Text = "⚡ هولد: مغلق"
+HoldToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+HoldToggleBtn.TextSize = 13
+HoldToggleBtn.Font = Enum.Font.GothamBold
+HoldToggleBtn.ZIndex = 52
+Instance.new("UICorner", HoldToggleBtn).CornerRadius = UDim.new(0, 8)
+Instance.new("UIStroke", HoldToggleBtn).Color = Color3.fromRGB(255, 100, 100)
+
+-- عداد وقت الهولد
+local TimeContainer = Instance.new("Frame", MainHub)
+TimeContainer.Size = UDim2.new(0, 190, 0, 36)
+TimeContainer.Position = UDim2.new(0.5, -95, 0, 88)
+TimeContainer.BackgroundColor3 = Color3.fromRGB(35, 30, 45)
+TimeContainer.ZIndex = 52
+Instance.new("UICorner", TimeContainer).CornerRadius = UDim.new(0, 8)
+Instance.new("UIStroke", TimeContainer).Color = Color3.fromRGB(255, 170, 0)
+
+local holdTimeValue = 2
+local TimeLabel = Instance.new("TextLabel", TimeContainer)
+TimeLabel.Size = UDim2.new(1, 0, 1, 0)
+TimeLabel.BackgroundTransparency = 1
+TimeLabel.Text = "وقت الهولد: " .. holdTimeValue
+TimeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TimeLabel.TextSize = 12
+TimeLabel.Font = Enum.Font.GothamBold
+TimeLabel.ZIndex = 53
+
+local MinusBtn = Instance.new("TextButton", TimeContainer)
+MinusBtn.Size = UDim2.new(0, 30, 1, 0)
+MinusBtn.Position = UDim2.new(0, 0, 0, 0)
+MinusBtn.BackgroundTransparency = 1
+MinusBtn.Text = "➖"
+MinusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinusBtn.TextSize = 12
+MinusBtn.ZIndex = 54
+
+local PlusBtn = Instance.new("TextButton", TimeContainer)
+PlusBtn.Size = UDim2.new(0, 30, 1, 0)
+PlusBtn.Position = UDim2.new(1, -30, 0, 0)
+PlusBtn.BackgroundTransparency = 1
+PlusBtn.Text = "➕"
+PlusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+PlusBtn.TextSize = 12
+PlusBtn.ZIndex = 54
+
+MinusBtn.MouseButton1Click:Connect(function()
+    if holdTimeValue > 1 then holdTimeValue = holdTimeValue - 1; TimeLabel.Text = "وقت الهولد: " .. holdTimeValue end
+end)
+
+PlusBtn.MouseButton1Click:Connect(function()
+    holdTimeValue = holdTimeValue + 1; TimeLabel.Text = "وقت الهولد: " .. holdTimeValue
+end)
+
+-- زر لف الشاشة (مطفي/شغال)
+local SpinToggleBtn = Instance.new("TextButton", MainHub)
+SpinToggleBtn.Size = UDim2.new(0, 190, 0, 36)
+SpinToggleBtn.Position = UDim2.new(0.5, -95, 0, 131)
+SpinToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 45)
+SpinToggleBtn.Text = "🔄 لف الشاشة: مطفي"
+SpinToggleBtn.TextColor3 = Color3.fromRGB(100, 180, 255)
+SpinToggleBtn.TextSize = 12
+SpinToggleBtn.Font = Enum.Font.GothamBold
+SpinToggleBtn.ZIndex = 52
+Instance.new("UICorner", SpinToggleBtn).CornerRadius = UDim.new(0, 8)
+Instance.new("UIStroke", SpinToggleBtn).Color = Color3.fromRGB(100, 180, 255)
+
+---------------------------------------------------------
+-- دالة لفحص هل نحن داخل القيم الفعلي (Arenas / In Game)
+---------------------------------------------------------
+local function isInGameMatch()
+    local workspaceChildren = Workspace:GetChildren()
+    for _, obj in pairs(workspaceChildren) do
+        -- التحقق من وجود ساحات لعب أو اجهاد داخل الجيم
+        if obj.Name:lower():find("arena") or obj.Name:lower():find("match") or obj.Name:lower():find("game") then
+            return true
+        end
+    end
+    -- كاحتياط، إذا لم يتم العثور على اسم ساحة صريح، نتحقق من وجود عدو متحرك وقريب
+    return true
 end
 
-holdEnabled = true
-startHold()
+---------------------------------------------------------
+-- منطق الهولد الحقيقي (الاحتفاظ بالقنبلة وتسليمها للخصم عند الوقت المحدد والهرب)
+---------------------------------------------------------
+local isHoldActive = false
+local isSpinActive = false
+local holdConn = nil
+
+local function isTrueEnemy(p)
+    if p == LocalPlayer then return false end
+    if p.Team and LocalPlayer.Team and p.Team == LocalPlayer.Team then return false end
+    return true
+end
+
+-- وظيفة للبحث عن القنبلة بحوزة اللاعب
+local function getCarriedBomb()
+    local char = LocalPlayer.Character
+    if not char then return nil end
+    for _, item in pairs(char:GetChildren()) do
+        if item:IsA("Tool") and (item.Name:lower():find("bomb") or item.Name:lower():find("tnt")) then
+            return item
+        end
+    end
+    return nil
+end
+
+-- قراءة عداد الوقت الخاص بالقنبلة إذا وجد
+local function getBombTimer()
+    local char = LocalPlayer.Character
+    if not char then return 999 end
+    for _, item in pairs(char:GetChildren()) do
+        if item:IsA("Tool") then
+            for _, v in pairs(item:GetDescendants()) do
+                if (v:IsA("NumberValue") or v:IsA("IntValue")) and (v.Name:lower():find("time") or v.Name:lower():find("timer")) then
+                    return v.Value
+                end
+            end
+        end
+    end
+    return 999
+end
+
+HoldToggleBtn.MouseButton1Click:Connect(function()
+    isHoldActive = not isHoldActive
+    if isHoldActive then
+        HoldToggleBtn.Text = "⚡ هولد: شغال"
+        HoldToggleBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
+        HoldToggleBtn.UIStroke.Color = Color3.fromRGB(100, 255, 100)
+        
+        holdConn = RunService.RenderStepped:Connect(function()
+            pcall(function()
+                if not isHoldActive then return end
+                
+                -- إذا لم نكن داخل قيم (في اللوبي مثلاً)، لا يفعل شيئاً ولا يروح عند الناس
+                if not isInGameMatch() then return end
+                
+                local char = LocalPlayer.Character
+                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                local root = char.HumanoidRootPart
+                
+                if hum and hum.Health > 0 then hum.WalkSpeed = 30 end
+                
+                local bomb = getCarriedBomb()
+                if bomb then
+                    -- معنا القنبلة: نحتفظ بها ونتوجه نحو أقرب خصم لتسليمها عند الثواني المحددة
+                    local bombTimer = getBombTimer()
+                    local closestRoot, minDist = nil, math.huge
+                    
+                    for _, p in pairs(Players:GetPlayers()) do
+                        if isTrueEnemy(p) and p.Character then
+                            local eRoot = p.Character:FindFirstChild("HumanoidRootPart")
+                            local eHum = p.Character:FindFirstChildOfClass("Humanoid")
+                            if eRoot and eHum and eHum.Health > 0 then
+                                local dist = (root.Position - eRoot.Position).Magnitude
+                                if dist < minDist then
+                                    minDist = dist
+                                    closestRoot = eRoot
+                                end
+                            end
+                        end
+                    end
+                    
+                    if closestRoot and hum then
+                        local targetPos = closestRoot.Position
+                        local moveDir = (targetPos - root.Position).Unit
+                        
+                        -- إذا وصل الوقت المتبقي للقنبلة نفس الوقت المحدد أو أقل، نسلمها ونهرب بالعكس!
+                        if bombTimer <= holdTimeValue then
+                            moveDir = -moveDir -- الهرب الفوري بعد التسليم
+                            bomb:Activate()     -- تسليم القنبلة للخصم
+                        end
+                        
+                        hum:Move(moveDir * 1.1)
+                    end
+                end
+            end)
+        end)
+    else
+        HoldToggleBtn.Text = "⚡ هولد: مغلق"
+        HoldToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+        HoldToggleBtn.UIStroke.Color = Color3.fromRGB(255, 100, 100)
+        if holdConn then holdConn:Disconnect(); holdConn = nil end
+        pcall(function()
+            local char = LocalPlayer.Character
+            if char and char:FindFirstChildOfClass("Humanoid") then
+                char:FindFirstChildOfClass("Humanoid").WalkSpeed = 16
+            end
+        end)
+    end
+end)
+
+SpinToggleBtn.MouseButton1Click:Connect(function()
+    isSpinActive = not isSpinActive
+    SpinToggleBtn.Text = isSpinActive and "🔄 لف الشاشة: شغال" or "🔄 لف الشاشة: مطفي"
+    SpinToggleBtn.TextColor3 = isSpinActive and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(100, 180, 255)
+end)
+
+-- ربط أحداث المقدمة والمفتاح
+local function finishIntro()
+    if IntroGui and IntroGui.Parent then IntroGui:Destroy() end
+    KeyFrame.Visible = true
+end
+
+task.delay(4, function()
+    if IntroGui and IntroGui.Parent then
+        finishIntro()
+    end
+end)
+
+SkipIntroBtn.MouseButton1Click:Connect(function()
+    finishIntro()
+end)
+
+VerifyBtn.MouseButton1Click:Connect(function()
+    local enteredKey = string.upper(string.gsub(KeyInput.Text or "", "%s+", ""))
+    -- المفتاح السري والصعب الجديد المطلوب
+    if enteredKey == "KJL12" then
+        pcall(function() if IntroMusic then IntroMusic:Stop() IntroMusic:Destroy() end end)
+        KeyFrame:Destroy()
+        MainHub.Visible = true
+    else
+        KeyInput.Text = ""
+        KeyInput.PlaceholderText = "خطأ، المفتاح غير صحيح!"
+    end
+end)
