@@ -19,6 +19,7 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local SoundService = game:GetService("SoundService")
+local UserInputService = game:GetService("UserInputService")
 
 pcall(function()
     if CoreGui:FindFirstChild("AT_HubSystem") then CoreGui.AT_HubSystem:Destroy() end
@@ -247,21 +248,27 @@ Instance.new("UIStroke", SpinToggleBtn).Color = Color3.fromRGB(100, 180, 255)
 local function isInGameMatch()
     local workspaceChildren = Workspace:GetChildren()
     for _, obj in pairs(workspaceChildren) do
-        -- التحقق من وجود ساحات لعب أو اجهاد داخل الجيم
         if obj.Name:lower():find("arena") or obj.Name:lower():find("match") or obj.Name:lower():find("game") then
             return true
         end
     end
-    -- كاحتياط، إذا لم يتم العثور على اسم ساحة صريح، نتحقق من وجود عدو متحرك وقريب
     return true
 end
 
 ---------------------------------------------------------
--- منطق الهولد الحقيقي (الاحتفاظ بالقنبلة وتسليمها للخصم عند الوقت المحدد والهرب)
+-- منطق الهولد مع إمكانية التدخل اليدوي (إذا حركت يدك يترك لك التحكم)
 ---------------------------------------------------------
 local isHoldActive = false
 local isSpinActive = false
 local holdConn = nil
+local lastManualInputTime = 0
+
+-- مراقبة حركة اللاعب اليدوية (إذا حاول يتحرك بنفسه بالجوستيك أو الحروف)
+UserInputService.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.Keyboard then
+        lastManualInputTime = tick() -- تسجيل وقت التدخل اليدوي
+    end
+end)
 
 local function isTrueEnemy(p)
     if p == LocalPlayer then return false end
@@ -269,7 +276,6 @@ local function isTrueEnemy(p)
     return true
 end
 
--- وظيفة للبحث عن القنبلة بحوزة اللاعب
 local function getCarriedBomb()
     local char = LocalPlayer.Character
     if not char then return nil end
@@ -281,7 +287,6 @@ local function getCarriedBomb()
     return nil
 end
 
--- قراءة عداد الوقت الخاص بالقنبلة إذا وجد
 local function getBombTimer()
     local char = LocalPlayer.Character
     if not char then return 999 end
@@ -307,9 +312,10 @@ HoldToggleBtn.MouseButton1Click:Connect(function()
         holdConn = RunService.RenderStepped:Connect(function()
             pcall(function()
                 if not isHoldActive then return end
-                
-                -- إذا لم نكن داخل قيم (في اللوبي مثلاً)، لا يفعل شيئاً ولا يروح عند الناس
                 if not isInGameMatch() then return end
+                
+                -- إذا تدخل اللاعب يدويًا خلال آخر ثانية ونصف، نعطيه الحرية التامة ولا نتدخل بحركته
+                if tick() - lastManualInputTime < 1.5 then return end
                 
                 local char = LocalPlayer.Character
                 if not char or not char:FindFirstChild("HumanoidRootPart") then return end
@@ -320,7 +326,6 @@ HoldToggleBtn.MouseButton1Click:Connect(function()
                 
                 local bomb = getCarriedBomb()
                 if bomb then
-                    -- معنا القنبلة: نحتفظ بها ونتوجه نحو أقرب خصم لتسليمها عند الثواني المحددة
                     local bombTimer = getBombTimer()
                     local closestRoot, minDist = nil, math.huge
                     
@@ -342,10 +347,9 @@ HoldToggleBtn.MouseButton1Click:Connect(function()
                         local targetPos = closestRoot.Position
                         local moveDir = (targetPos - root.Position).Unit
                         
-                        -- إذا وصل الوقت المتبقي للقنبلة نفس الوقت المحدد أو أقل، نسلمها ونهرب بالعكس!
                         if bombTimer <= holdTimeValue then
-                            moveDir = -moveDir -- الهرب الفوري بعد التسليم
-                            bomb:Activate()     -- تسليم القنبلة للخصم
+                            moveDir = -moveDir
+                            bomb:Activate()
                         end
                         
                         hum:Move(moveDir * 1.1)
@@ -373,7 +377,6 @@ SpinToggleBtn.MouseButton1Click:Connect(function()
     SpinToggleBtn.TextColor3 = isSpinActive and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(100, 180, 255)
 end)
 
--- ربط أحداث المقدمة والمفتاح
 local function finishIntro()
     if IntroGui and IntroGui.Parent then IntroGui:Destroy() end
     KeyFrame.Visible = true
@@ -391,7 +394,6 @@ end)
 
 VerifyBtn.MouseButton1Click:Connect(function()
     local enteredKey = string.upper(string.gsub(KeyInput.Text or "", "%s+", ""))
-    -- المفتاح السري والصعب الجديد المطلوب
     if enteredKey == "KJL12" then
         pcall(function() if IntroMusic then IntroMusic:Stop() IntroMusic:Destroy() end end)
         KeyFrame:Destroy()
