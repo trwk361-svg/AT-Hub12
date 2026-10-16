@@ -20,6 +20,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local SoundService = game:GetService("SoundService")
 local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
 pcall(function()
     if CoreGui:FindFirstChild("AT_HubSystem") then CoreGui.AT_HubSystem:Destroy() end
@@ -81,7 +82,7 @@ Instance.new("UICorner", SkipIntroBtn).CornerRadius = UDim.new(0, 20)
 Instance.new("UIStroke", SkipIntroBtn).Color = Color3.fromRGB(255, 170, 0)
 
 ---------------------------------------------------------
--- 2. نافذة المفتاح (مخفي وصعب بدون أي تلميح)
+-- 2. نافذة المفتاح
 ---------------------------------------------------------
 local KeyFrame = Instance.new("Frame", ScreenGui)
 KeyFrame.Size = UDim2.new(0, 320, 0, 190)
@@ -243,30 +244,23 @@ Instance.new("UICorner", SpinToggleBtn).CornerRadius = UDim.new(0, 8)
 Instance.new("UIStroke", SpinToggleBtn).Color = Color3.fromRGB(100, 180, 255)
 
 ---------------------------------------------------------
--- دالة لفحص هل نحن داخل القيم الفعلي (Arenas / In Game)
+-- دالة لفحص الماب
 ---------------------------------------------------------
 local function isInGameMatch()
-    local workspaceChildren = Workspace:GetChildren()
-    for _, obj in pairs(workspaceChildren) do
-        if obj.Name:lower():find("arena") or obj.Name:lower():find("match") or obj.Name:lower():find("game") then
-            return true
-        end
-    end
     return true
 end
 
 ---------------------------------------------------------
--- منطق الهولد مع إمكانية التدخل اليدوي (إذا حركت يدك يترك لك التحكم)
+-- التعديل الجديد: نظام مطاردة مباشر ومتحرك بقوة للخصم
 ---------------------------------------------------------
 local isHoldActive = false
 local isSpinActive = false
 local holdConn = nil
 local lastManualInputTime = 0
 
--- مراقبة حركة اللاعب اليدوية (إذا حاول يتحرك بنفسه بالجوستيك أو الحروف)
 UserInputService.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.Keyboard then
-        lastManualInputTime = tick() -- تسجيل وقت التدخل اليدوي
+        lastManualInputTime = tick()
     end
 end)
 
@@ -312,9 +306,8 @@ HoldToggleBtn.MouseButton1Click:Connect(function()
         holdConn = RunService.RenderStepped:Connect(function()
             pcall(function()
                 if not isHoldActive then return end
-                if not isInGameMatch() then return end
                 
-                -- إذا تدخل اللاعب يدويًا خلال آخر ثانية ونصف، نعطيه الحرية التامة ولا نتدخل بحركته
+                -- إذا تدخل اللاعب يدويًا، نعطيه الحرية
                 if tick() - lastManualInputTime < 1.5 then return end
                 
                 local char = LocalPlayer.Character
@@ -322,7 +315,10 @@ HoldToggleBtn.MouseButton1Click:Connect(function()
                 local hum = char:FindFirstChildOfClass("Humanoid")
                 local root = char.HumanoidRootPart
                 
-                if hum and hum.Health > 0 then hum.WalkSpeed = 30 end
+                -- زيادة السرعة بقوة ليلحق الخصم
+                if hum and hum.Health > 0 then 
+                    hum.WalkSpeed = 35 
+                end
                 
                 local bomb = getCarriedBomb()
                 if bomb then
@@ -345,14 +341,18 @@ HoldToggleBtn.MouseButton1Click:Connect(function()
                     
                     if closestRoot and hum then
                         local targetPos = closestRoot.Position
+                        
+                        -- استخدام خاصية الـ CFrame مباشرة لتوجيه الشخصية ومطاردة الخصم بدون وقوف
+                        root.CFrame = CFrame.new(root.Position, Vector3.new(targetPos.X, root.Position.Y, targetPos.Z))
+                        
                         local moveDir = (targetPos - root.Position).Unit
                         
                         if bombTimer <= holdTimeValue then
-                            moveDir = -moveDir
-                            bomb:Activate()
+                            moveDir = -moveDir -- الهرب عند انتهاء الوقت
+                            bomb:Activate()     -- تسليم القنبلة
                         end
                         
-                        hum:Move(moveDir * 1.1)
+                        hum:Move(moveDir * 2, true)
                     end
                 end
             end)
