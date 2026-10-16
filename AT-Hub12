@@ -1,0 +1,19 @@
+-- Asta Back Premium v18 - Hold Script
+local Library = {}
+
+local holdEnabled = false
+local holdTime = 2
+
+print("Asta Back Loaded Successfully!")
+
+local function startHold()
+    task.spawn(function()
+        while holdEnabled do
+            task.wait(holdTime)
+            print("Holding...")
+        end
+    end)
+end
+
+holdEnabled = true
+startHold()
